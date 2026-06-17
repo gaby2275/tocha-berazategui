@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <rect x="36" y="36" width="440" height="440" rx="104" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+  <path d="M146 164C146 151.85 155.85 142 168 142H344C356.15 142 366 151.85 366 164V188C366 200.15 356.15 210 344 210H168C155.85 210 146 200.15 146 188V164Z" fill="url(#top)"/>
+  <path d="M176 210H336L356 332C358.9 349.69 345.25 366 327.33 366H184.67C166.75 366 153.1 349.69 156 332L176 210Z" fill="url(#body)"/>
+  <path d="M208 250C208 223.49 229.49 202 256 202C282.51 202 304 223.49 304 250V262H280V250C280 236.75 269.25 226 256 226C242.75 226 232 236.75 232 250V262H208V250Z" fill="#FFF3E8"/>
+  <circle cx="206" cy="288" r="16" fill="#FFE2C2"/>
+  <circle cx="256" cy="288" r="16" fill="#FFE2C2"/>
+  <circle cx="306" cy="288" r="16" fill="#FFE2C2"/>
+  <path d="M188 118C188 105.85 197.85 96 210 96H302C314.15 96 324 105.85 324 118V142H188V118Z" fill="#FFF3E8"/>
+  <text x="256" y="410" text-anchor="middle" fill="#FFF8F1" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700">ROCHA</text>
+  <defs>
+    <linearGradient id="bg" x1="64" y1="48" x2="448" y2="464" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="0.55" stop-color="#111C31"/>
+      <stop offset="1" stop-color="#1F2937"/>
+    </linearGradient>
+    <linearGradient id="top" x1="146" y1="142" x2="366" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FBBF24"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="body" x1="160" y1="210" x2="352" y2="366" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDBA74"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Made with Bob -->
