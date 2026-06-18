@@ -23,16 +23,16 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    notes: '',
+    name: 'Juan Pérez',
+    email: 'juan.perez@ejemplo.com',
+    phone: '1132044814',
+    address: 'Av. Mitre 1234',
+    city: 'Berazategui',
+    postalCode: '1884',
+    notes: 'Entregar entre 10 y 14hs',
   });
   const [paymentMethod, setPaymentMethod] = useState<'mercadopago' | 'paypal' | 'transfer'>(
-    'mercadopago'
+    'transfer'
   );
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!formData.name || !formData.email || !formData.phone || !formData.address || !formData.city) {
+    if (!formData.name || !formData.phone || !formData.address || !formData.city) {
       toast.error('Por favor completa todos los campos requeridos');
       return;
     }
@@ -62,99 +62,71 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const userResponse = await supabase
-        .from('users')
-        .upsert(
-          [
-            {
-              email: formData.email,
-              name: formData.name,
-              phone: formData.phone,
-              address: {
-                street: formData.address,
-                city: formData.city,
-                postalCode: formData.postalCode,
-              },
-            },
-          ] as never,
-          {
-            onConflict: 'email',
-          }
-        )
-        .select()
-        .single();
+      // Crear mensaje de WhatsApp
+      let mensaje = `🛒 *NUEVO PEDIDO - Rocha Berazategui*\n\n`;
+      mensaje += `👤 *Cliente:* ${formData.name}\n`;
+      mensaje += `📧 *Email:* ${formData.email}\n`;
+      mensaje += `📱 *Teléfono:* ${formData.phone}\n`;
+      mensaje += `📍 *Dirección:* ${formData.address}, ${formData.city}`;
+      if (formData.postalCode) mensaje += ` (CP: ${formData.postalCode})`;
+      mensaje += `\n\n`;
 
-      const { data: userData, error: userError } = userResponse as unknown as {
-        data: { id: string } | null;
-        error: unknown;
-      };
+      mensaje += `📦 *PRODUCTOS:*\n`;
+      hydratedItems.forEach((item, index) => {
+        mensaje += `${index + 1}. ${item.name}\n`;
+        mensaje += `   Cantidad: ${item.quantity} x $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}\n`;
+      });
 
-      if (userError) throw userError;
+      mensaje += `\n💰 *TOTAL: $${total.toFixed(2)}*\n\n`;
 
-      const orderResponse = await supabase
-        .from('orders')
-        .insert(
-          [
-            {
-              user_id: userData!.id,
-              total,
-              shipping_address: {
-                street: formData.address,
-                city: formData.city,
-                postalCode: formData.postalCode,
-              },
-              payment_method: paymentMethod,
-              payment_status: 'pending',
-              status: 'pending',
-              notes: formData.notes,
-            },
-          ] as never
-        )
-        .select()
-        .single();
+      const paymentMethodText =
+        paymentMethod === 'mercadopago' ? 'MercadoPago' :
+        paymentMethod === 'paypal' ? 'PayPal' :
+        'Transferencia bancaria';
+      
+      mensaje += `💳 *Forma de pago:* ${paymentMethodText}\n`;
 
-      const { data: orderData, error: orderError } = orderResponse as unknown as {
-        data: { id: string } | null;
-        error: unknown;
-      };
-
-      if (orderError) throw orderError;
-
-      const orderItems = hydratedItems.map((item) => ({
-        order_id: orderData!.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems as never);
-
-      if (itemsError) throw itemsError;
-
-      const { error: deliveryError } = await supabase.from('deliveries').insert([
-        {
-          order_id: orderData!.id,
-          status: 'pending',
-        },
-      ] as never);
-
-      if (deliveryError) throw deliveryError;
-
-      if (paymentMethod === 'mercadopago') {
-        toast.success('Redirigiendo a MercadoPago...');
-      } else if (paymentMethod === 'paypal') {
-        toast.success('Redirigiendo a PayPal...');
-      } else {
-        toast.success('Pedido creado. Te contactaremos para coordinar el pago.');
+      if (formData.notes) {
+        mensaje += `\n📝 *Notas:* ${formData.notes}\n`;
       }
 
+      mensaje += `\n✅ *Pedido confirmado y listo para procesar*`;
+
+      // Codificar mensaje para URL
+      const mensajeCodificado = encodeURIComponent(mensaje);
+      const whatsappURL = `https://wa.me/5491132044814?text=${mensajeCodificado}`;
+
+      // Guardar en base de datos (opcional, para registro)
+      try {
+        await supabase.from('orders').insert([
+          {
+            total,
+            shipping_address: {
+              street: formData.address,
+              city: formData.city,
+              postalCode: formData.postalCode,
+            },
+            payment_method: paymentMethod,
+            payment_status: 'pending',
+            status: 'pending',
+            notes: `Cliente: ${formData.name} - Tel: ${formData.phone} - Email: ${formData.email}${formData.notes ? ' - ' + formData.notes : ''}`,
+          },
+        ] as never);
+      } catch (dbError) {
+        console.log('Error guardando en BD (no crítico):', dbError);
+      }
+
+      toast.success('¡Pedido listo! Redirigiendo a WhatsApp...');
+      
       clearCart();
 
+      // Redirigir a WhatsApp
       setTimeout(() => {
-        router.push(`/order-confirmation/${orderData!.id}`);
-      }, 2000);
+        window.open(whatsappURL, '_blank');
+        router.push('/');
+      }, 1500);
     } catch (error) {
-      console.error('Error creating order:', error);
+      console.error('Error procesando pedido:', error);
       toast.error('Error al procesar el pedido. Por favor intenta nuevamente.');
     } finally {
       setLoading(false);

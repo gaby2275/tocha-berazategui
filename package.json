@@ -9,6 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@supabase/supabase-js": "^2.108.2",
     "lucide-react": "^1.20.0",

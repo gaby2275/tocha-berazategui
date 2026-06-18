@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   CreditCard,
+  Image as ImageIcon,
   Package,
   Plus,
   RefreshCw,
@@ -12,6 +13,8 @@ import {
   ShoppingCart,
   Sparkles,
   TrendingUp,
+  Upload,
+  X,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { supabase } from '@/lib/supabase';
@@ -28,6 +31,7 @@ type ProductFormState = {
   category: string;
   sku: string;
   active: boolean;
+  imageUrl: string;
 };
 
 const emptyProductForm: ProductFormState = {
@@ -38,6 +42,7 @@ const emptyProductForm: ProductFormState = {
   category: '',
   sku: '',
   active: true,
+  imageUrl: '',
 };
 
 export default function AdminPage() {
@@ -47,6 +52,7 @@ export default function AdminPage() {
   const [savingProductId, setSavingProductId] = useState<string | null>(null);
   const [creatingProduct, setCreatingProduct] = useState(false);
   const [newProduct, setNewProduct] = useState<ProductFormState>(emptyProductForm);
+  const [editingImageProductId, setEditingImageProductId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadAdminData();
@@ -137,6 +143,8 @@ export default function AdminPage() {
     setCreatingProduct(true);
 
     try {
+      const images = newProduct.imageUrl ? [newProduct.imageUrl] : [];
+      
       const payload: Database['public']['Tables']['products']['Insert'] = {
         name: newProduct.name,
         description: newProduct.description || null,
@@ -145,7 +153,7 @@ export default function AdminPage() {
         category: newProduct.category || null,
         sku: newProduct.sku || null,
         active: newProduct.active,
-        images: [],
+        images,
         wholesale_prices: [],
       };
 
@@ -161,6 +169,24 @@ export default function AdminPage() {
       toast.error('No se pudo crear el producto');
     } finally {
       setCreatingProduct(false);
+    }
+  };
+
+  const updateProductImage = async (productId: string, imageUrl: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ images: [imageUrl] } as never)
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast.success('Imagen actualizada');
+      setEditingImageProductId(null);
+      await loadAdminData();
+    } catch (error) {
+      console.error('Error updating image:', error);
+      toast.error('No se pudo actualizar la imagen');
     }
   };
 
@@ -363,6 +389,36 @@ export default function AdminPage() {
             </div>
           </div>
 
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <ImageIcon className="h-4 w-4" />
+              <span>Imagen del producto</span>
+            </div>
+            <input
+              type="url"
+              placeholder="URL de la imagen (ej: https://i.ibb.co/abc123/producto.jpg)"
+              value={newProduct.imageUrl}
+              onChange={(e) => setNewProduct((current) => ({ ...current, imageUrl: e.target.value }))}
+              className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-amber-400/40 focus:outline-none"
+            />
+            {newProduct.imageUrl && (
+              <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
+                <img
+                  src={newProduct.imageUrl}
+                  alt="Vista previa"
+                  className="h-32 w-32 rounded-xl object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '';
+                    toast.error('URL de imagen inválida');
+                  }}
+                />
+              </div>
+            )}
+            <p className="text-xs text-slate-500">
+              💡 Sube tu imagen a <a href="https://imgbb.com" target="_blank" rel="noopener noreferrer" className="text-amber-400 hover:underline">ImgBB</a> (gratis) y pega el link "Direct link" aquí
+            </p>
+          </div>
+
           <div className="mt-5">
             <button
               onClick={() => void createProduct()}
@@ -468,6 +524,63 @@ export default function AdminPage() {
                       <Save className="h-4 w-4" />
                       {savingProductId === product.id ? 'Guardando...' : 'Guardar'}
                     </button>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <ImageIcon className="h-4 w-4" />
+                        <span>Imagen del producto</span>
+                      </div>
+                      {Array.isArray(product.images) && product.images[0] && (
+                        <img
+                          src={String(product.images[0])}
+                          alt={product.name}
+                          className="h-16 w-16 rounded-lg object-cover"
+                        />
+                      )}
+                    </div>
+                    {editingImageProductId === product.id ? (
+                      <div className="space-y-3">
+                        <input
+                          type="url"
+                          placeholder="Nueva URL de imagen"
+                          className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-amber-400/40 focus:outline-none"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              void updateProductImage(product.id, e.currentTarget.value);
+                            }
+                          }}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              const input = e.currentTarget.parentElement?.previousElementSibling as HTMLInputElement;
+                              if (input?.value) {
+                                void updateProductImage(product.id, input.value);
+                              }
+                            }}
+                            className="flex-1 rounded-xl bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            onClick={() => setEditingImageProductId(null)}
+                            className="rounded-xl border border-white/10 bg-slate-950/70 px-3 py-2 text-sm text-slate-300 hover:bg-white/5"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setEditingImageProductId(product.id)}
+                        className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-950/70 px-4 py-2 text-sm text-slate-300 hover:bg-white/5"
+                      >
+                        <Upload className="h-4 w-4" />
+                        {Array.isArray(product.images) && product.images[0] ? 'Cambiar imagen' : 'Agregar imagen'}
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
