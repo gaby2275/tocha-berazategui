@@ -119,7 +119,7 @@ export default function CheckoutPage() {
 
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);
-      const whatsappURL = `https://wa.me/5491132044814?text=${mensajeCodificado}`;
+      const whatsappURL = `https://wa.me/5491165925537?text=${mensajeCodificado}`;
 
       // Mostrar mensaje de éxito
       toast.success('¡Pedido listo! Abriendo WhatsApp...');

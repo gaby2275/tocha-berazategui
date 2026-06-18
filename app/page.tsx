@@ -137,7 +137,7 @@ export default function Home() {
         {/* Botones flotantes de contacto */}
         <div className="fixed bottom-24 right-4 z-40 flex flex-col gap-3 md:bottom-6">
           <a
-            href="https://wa.me/5491132044814?text=Hola!%20Quiero%20hacer%20un%20pedido"
+            href="https://wa.me/5491165925537?text=Hola!%20Quiero%20hacer%20un%20pedido"
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 shadow-lg shadow-green-500/30 hover:bg-green-400 hover:scale-110 transition-all"
