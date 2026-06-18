@@ -62,38 +62,60 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Crear mensaje de WhatsApp
+      // Crear mensaje de WhatsApp mejorado
       let mensaje = '🛒 *NUEVO PEDIDO - Rocha Berazategui*\n\n';
-      mensaje += `👤 *Cliente:* ${formData.name}\n`;
-      mensaje += `📧 *Email:* ${formData.email}\n`;
-      mensaje += `📱 *Teléfono:* ${formData.phone}\n`;
-      mensaje += `📍 *Dirección:* ${formData.address}, ${formData.city}`;
+      
+      // Datos del cliente
+      mensaje += '👤 *DATOS DEL CLIENTE*\n';
+      mensaje += `Nombre: ${formData.name}\n`;
+      mensaje += `Email: ${formData.email}\n`;
+      mensaje += `Teléfono: ${formData.phone}\n\n`;
+      
+      // Dirección de entrega
+      mensaje += '🚚 *DATOS DE ENTREGA*\n';
+      mensaje += `Dirección: ${formData.address}\n`;
+      mensaje += `Ciudad: ${formData.city}\n`;
       if (formData.postalCode) {
-        mensaje += ` (CP: ${formData.postalCode})`;
+        mensaje += `Código Postal: ${formData.postalCode}\n`;
       }
-      mensaje += '\n\n';
+      if (formData.notes) {
+        mensaje += `Notas de entrega: ${formData.notes}\n`;
+      }
+      mensaje += '\n';
 
-      mensaje += '📦 *PRODUCTOS:*\n';
+      // Productos
+      mensaje += '📦 *DETALLE DEL PEDIDO*\n';
       hydratedItems.forEach((item, index) => {
         const subtotal = item.quantity * item.price;
         mensaje += `${index + 1}. ${item.name}\n`;
         mensaje += `   Cantidad: ${item.quantity} x $${item.price.toFixed(2)} = $${subtotal.toFixed(2)}\n`;
       });
 
-      mensaje += `\n💰 *TOTAL: $${total.toFixed(2)}*\n\n`;
+      // Total
+      mensaje += `\n💰 *TOTAL A PAGAR: $${total.toFixed(2)}*\n\n`;
 
-      const paymentMethodText =
-        paymentMethod === 'mercadopago' ? 'MercadoPago' :
-        paymentMethod === 'paypal' ? 'PayPal' :
-        'Transferencia bancaria';
+      // Medio de pago con detalles
+      mensaje += '💳 *MEDIO DE PAGO*\n';
       
-      mensaje += `💳 *Forma de pago:* ${paymentMethodText}\n`;
-
-      if (formData.notes) {
-        mensaje += `\n📝 *Notas:* ${formData.notes}\n`;
+      if (paymentMethod === 'transfer') {
+        mensaje += 'Forma de pago: Transferencia bancaria\n\n';
+        mensaje += '📋 *DATOS BANCARIOS*\n';
+        mensaje += 'Banco: [Nombre del banco]\n';
+        mensaje += 'CBU/CVU: [Número de CBU/CVU]\n';
+        mensaje += 'Alias: [Alias de la cuenta]\n';
+        mensaje += 'Titular: Distribuidora Rocha Berazategui\n';
+        mensaje += 'CUIT: [CUIT de la empresa]\n\n';
+        mensaje += '⚠️ *Importante:* Enviar comprobante de pago por este medio\n';
+      } else if (paymentMethod === 'mercadopago') {
+        mensaje += 'Forma de pago: MercadoPago\n';
+        mensaje += 'Se enviará link de pago por separado\n';
+      } else if (paymentMethod === 'paypal') {
+        mensaje += 'Forma de pago: PayPal\n';
+        mensaje += 'Se enviará link de pago por separado\n';
       }
 
-      mensaje += '\n✅ *Pedido confirmado y listo para procesar*';
+      mensaje += '\n✅ *Pedido confirmado y listo para procesar*\n';
+      mensaje += '📞 Cualquier consulta, responder a este mensaje';
 
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);
