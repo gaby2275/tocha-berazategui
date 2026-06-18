@@ -46,7 +46,7 @@ export default function CheckoutPage() {
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (hydratedItems.length === 0) {
@@ -63,18 +63,21 @@ export default function CheckoutPage() {
 
     try {
       // Crear mensaje de WhatsApp
-      let mensaje = `🛒 *NUEVO PEDIDO - Rocha Berazategui*\n\n`;
+      let mensaje = '🛒 *NUEVO PEDIDO - Rocha Berazategui*\n\n';
       mensaje += `👤 *Cliente:* ${formData.name}\n`;
       mensaje += `📧 *Email:* ${formData.email}\n`;
       mensaje += `📱 *Teléfono:* ${formData.phone}\n`;
       mensaje += `📍 *Dirección:* ${formData.address}, ${formData.city}`;
-      if (formData.postalCode) mensaje += ` (CP: ${formData.postalCode})`;
-      mensaje += `\n\n`;
+      if (formData.postalCode) {
+        mensaje += ` (CP: ${formData.postalCode})`;
+      }
+      mensaje += '\n\n';
 
-      mensaje += `📦 *PRODUCTOS:*\n`;
+      mensaje += '📦 *PRODUCTOS:*\n';
       hydratedItems.forEach((item, index) => {
+        const subtotal = item.quantity * item.price;
         mensaje += `${index + 1}. ${item.name}\n`;
-        mensaje += `   Cantidad: ${item.quantity} x $${item.price.toFixed(2)} = $${(item.quantity * item.price).toFixed(2)}\n`;
+        mensaje += `   Cantidad: ${item.quantity} x $${item.price.toFixed(2)} = $${subtotal.toFixed(2)}\n`;
       });
 
       mensaje += `\n💰 *TOTAL: $${total.toFixed(2)}*\n\n`;
@@ -90,41 +93,25 @@ export default function CheckoutPage() {
         mensaje += `\n📝 *Notas:* ${formData.notes}\n`;
       }
 
-      mensaje += `\n✅ *Pedido confirmado y listo para procesar*`;
+      mensaje += '\n✅ *Pedido confirmado y listo para procesar*';
 
       // Codificar mensaje para URL
       const mensajeCodificado = encodeURIComponent(mensaje);
       const whatsappURL = `https://wa.me/5491132044814?text=${mensajeCodificado}`;
 
-      // Guardar en base de datos (opcional, para registro)
-      try {
-        await supabase.from('orders').insert([
-          {
-            total,
-            shipping_address: {
-              street: formData.address,
-              city: formData.city,
-              postalCode: formData.postalCode,
-            },
-            payment_method: paymentMethod,
-            payment_status: 'pending',
-            status: 'pending',
-            notes: `Cliente: ${formData.name} - Tel: ${formData.phone} - Email: ${formData.email}${formData.notes ? ' - ' + formData.notes : ''}`,
-          },
-        ] as never);
-      } catch (dbError) {
-        console.log('Error guardando en BD (no crítico):', dbError);
-      }
-
-      toast.success('¡Pedido listo! Redirigiendo a WhatsApp...');
+      // Mostrar mensaje de éxito
+      toast.success('¡Pedido listo! Abriendo WhatsApp...');
       
+      // Limpiar carrito
       clearCart();
 
-      // Redirigir a WhatsApp
+      // Abrir WhatsApp inmediatamente
+      window.location.href = whatsappURL;
+      
+      // Redirigir a home después de un momento
       setTimeout(() => {
-        window.open(whatsappURL, '_blank');
         router.push('/');
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Error procesando pedido:', error);
       toast.error('Error al procesar el pedido. Por favor intenta nuevamente.');
